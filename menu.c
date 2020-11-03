@@ -1,47 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "odbc.h"
-#include "products.h"
-
-/* #include "menu_template.h" */
-/* #ifndef A2BIS_MENU_TEMPLATE_H */
-/* #define A2BIS_MENU_TEMPLATE_H */
-
-/* Prototypes:
- * Since in this example this functions are not used outside menu_template
- * it does not make sense to create an include file and export them
- * BUT in your code it will make sense to break this file in many files
- * and create several include files with the prototypes
- *
- * A static function in C is a function that has a scope that is limited
- * to its object file. This means that the static function is only
- * visible in its object file. Therefore,
- * you need to remove the static keyword from the declaration
- * if the function is declared in a file and used in another
- * */
-
-static int ShowMainMenu();
-static void ShowProductsMenu();
-static int ShowProductsSubMenu();
-static void ShowOrdersMenu();
-static int ShowOrdersSubMenu();
-static void ShowCustomersMenu();
-static int ShowCustomersSubMenu();
-static void PrintOpen();
-static void PrintRange();
-static void PrintDetail();
-static void PrintStock();
-static void PrintFind();
-static void PrintCFind();
-static void PrintListProducts();
-static void PrintBalance();
-
-/* #endif //A2BIS_MENU_TEMPLATE_H */
-
 /**
- * @file menu_template.c
- * @author rmarabini
- * @date 15 April 2020
+ * @file menu.c
+ * @author David Alvarez Saez
+ * @date 03 November 2020
  * @brief File containing an example of a menu system with submenus
  *
  * The following program allows a user to select a nursery rhyme
@@ -50,8 +10,39 @@ static void PrintBalance();
  * second level (sub-menus) allow to select either a particular
  * rhyme or tail.
  *
- * @see https://bytes.com/topic/c/answers/567136-creating-menus-sub-menus
  */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "products.h"
+
+
+/* Prototypes*/
+int ShowMainMenu();
+void ShowProductsMenu();
+int ShowProductsSubMenu();
+void ShowOrdersMenu();
+int ShowOrdersSubMenu();
+void ShowCustomersMenu();
+int ShowCustomersSubMenu();
+void PrintOpen() {
+    printf("DEVUELVE UN LISTADO CON TODOS LOS PEDIDOS QUE TODAVÍA NO SE HAYAN ENVIADO\n\n\n");
+}
+void PrintRange() {
+    printf("SE SOLICITAN AL USUARIO DOS FECHAS Y SE DEVUELVE UN LISTADO CON LOS PEDIDOS\n\n\n");
+}
+void PrintDetail() {
+    printf("SE SOLICITA UN ID DE PEDIDO Y SE DEVUELVE UN LISTADO CONTENIENDO LOS DETALLES DEL PEDIDO\n\n\n");
+}
+void PrintCFind() {
+    printf("SE SOLICITA UN NOMBRE DE CONTACTO...\n\n\n");
+}
+void PrintListProducts() {
+    printf("SE SOLICITA EL ID DE UN CLIENTE Y DEVUELVE LISTADO CON LOS PRODUCTOS SOLICITADOS POR EL CLIENTE...\n\n\n");
+}
+void PrintBalance() {
+    printf("SE SOLICITA EL ID DE UN CLIENTE Y SE DEVUELVE EL SALDO DEL MISMO...\n\n\n");
+}
 
 
 /**
@@ -62,7 +53,7 @@ static void PrintBalance();
  * corresponding submenu
  *
  * @return 0 if no error
- * @author rmarabini
+ * @author David Alvarez Saez
  */
 int main(void) {
     int nChoice = 0;
@@ -100,7 +91,7 @@ int main(void) {
  *
  *
  * @return selected entry in the menu
- * @author rmarabini
+ * @author David Alvarez Saez
  */
 
 int ShowMainMenu() {
@@ -142,7 +133,7 @@ int ShowMainMenu() {
  * menu, analyze the user selection and prints
  * the selected rhyme
  * @return void
- * @author rmarabini
+ * @author David Alvarez Saez
  */
 
 void ShowProductsMenu() {
@@ -157,7 +148,7 @@ void ShowProductsMenu() {
                 break;
 
             case 2: {
-                PrintFind();
+                products_find();
             }
                 break;
 
@@ -174,7 +165,7 @@ void ShowProductsMenu() {
  * @brief prints rhyme menu and allows to select an option.
  *
  * @return selected option
- * @author rmarabini
+ * @author David Alvarez Saez
  */
 
  int ShowProductsSubMenu() {
@@ -213,7 +204,7 @@ void ShowProductsMenu() {
  * the selected fairy tail
  *
  * @return selected option
- * @author rmarabini
+ * @author David Alvarez Saez
  */
 
 void ShowOrdersMenu() {
@@ -250,7 +241,7 @@ void ShowOrdersMenu() {
  * @brief prints the fairy menu and allows to select an option.
  *
  * @return selected option
- * @author rmarabini
+ * @author David Alvarez Saez
  */
  int ShowOrdersSubMenu() {
     int nSelected = 0;
@@ -288,7 +279,7 @@ void ShowOrdersMenu() {
  * the selected fairy tail
  *
  * @return selected option
- * @author rmarabini
+ * @author David Alvarez Saez
  */
 
 void ShowCustomersMenu() {
@@ -325,7 +316,7 @@ void ShowCustomersMenu() {
  * @brief prints the fairy menu and allows to select an option.
  *
  * @return selected option
- * @author rmarabini
+ * @author David Alvarez Saez
  */
  int ShowCustomersSubMenu() {
     int nSelected = 0;
@@ -355,143 +346,3 @@ void ShowCustomersMenu() {
     return nSelected;
 }
 
-/**
- * @brief prints Rhyme Mary
- *
- * @return void
- * @author rmarabini
- *
- */
-int products_stock(){
-    SQLHENV env;
-    SQLHDBC dbc;
-    SQLHSTMT stmt;
-    SQLRETURN ret; /* ODBC API return status */
-    char x[512];
-    SQLCHAR quantityinstock[512];
-
-    /* CONNECT */
-    ret = odbc_connect(&env, &dbc);
-    if (!SQL_SUCCEEDED(ret)) {
-        return EXIT_FAILURE;
-    }
-
-    /* Allocate a statement handle */
-    SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-
-    printf("Insert productcode to show stock: ");
-    fflush(stdout);
-    while (fgets(x, sizeof(x), stdin) != NULL) {
-        char query[512];
-        sprintf(query, "SELECT p.quantityinstock FROM products p WHERE p.productcode = '%s';", x);
-	printf("%s \n", query); /*comprueba el funcionamiento de la consulta*/
-
-        SQLExecDirect(stmt, (SQLCHAR*) query, SQL_NTS);
-
-        SQLBindCol(stmt, 1, SQL_C_CHAR, quantityinstock, sizeof(quantityinstock), NULL);
-
-        /* Loop through the rows in the result-set */
-        while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
-            printf("Quantity in stock = %s\n", quantityinstock);
-        }
-
-        SQLCloseCursor(stmt); /*Limpia el contenido del contenedor*/
-
-        printf("Insert productcode to show stock: ");
-        fflush(stdout);
-    }
-    printf("\n");
-    
-    /* free up statement handle */
-    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-
-    /* DISCONNECT */
-    ret = odbc_disconnect(env, dbc);
-    if (!SQL_SUCCEEDED(ret)) {
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
-
-}
-
-/**
- * @brief prints Rhyme Jack
- *
- * @return void
- * @author rmarabini
- *
- */
-void PrintFind() {
-    printf("el pepe\n\n\n");
-}
-
-/**
- * @brief prints Rhyme LittleBoPee
- *
- * @return void
- * @author rmarabini
- *
- */
-void PrintOpen() {
-    printf("DEVUELVE UN LISTADO CON TODOS LOS PEDIDOS QUE TODAVÍA NO SE HAYAN ENVIADO\n\n\n");
-}
-
-/**
- * @brief prints fairy tail LittleBoPee
- *
- * @return void
- * @author rmarabini
- *
- */
- void PrintRange() {
-    printf("SE SOLICITAN AL USUARIO DOS FECHAS Y SE DEVUELVE UN LISTADO CON LOS PEDIDOS\n\n\n");
-}
-
-/**
- * @brief prints fairy tail LittleBoPee
- *
- * @return void
- * @author rmarabini
- *
- */
-void PrintDetail() {
-    printf("SE SOLICITA UN ID DE PEDIDO Y SE DEVUELVE UN LISTADO CONTENIENDO LOS DETALLES DEL PEDIDO\n\n\n");
-}
-
-/**
- * @brief prints fairy tail LittleBoPee
- *
- * @return void
- * @author rmarabini
- *
- */
-
-void PrintCFind() {
-    printf("SE SOLICITA UN NOMBRE DE CONTACTO...\n\n\n");
-}
-
-/**
- * @brief prints fairy tail LittleBoPee
- *
- * @return void
- * @author rmarabini
- *
- */
-
-void PrintListProducts() {
-    printf("SE SOLICITA EL ID DE UN CLIENTE Y DEVUELVE LISTADO CON LOS PRODUCTOS SOLICITADOS POR EL CLIENTE...\n\n\n");
-}
-
-/**
- * @brief prints fairy tail LittleBoPee
- *
- * @return void
- * @author rmarabini
- *
- */
-
-void PrintBalance() {
-    printf("SE SOLICITA EL ID DE UN CLIENTE Y SE DEVUELVE EL SALDO DEL MISMO...\n\n\n");
-}
-     
