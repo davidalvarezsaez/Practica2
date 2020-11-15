@@ -30,3 +30,21 @@ FROM (
 	GROUP BY c1.customernumber
 	) AS tabla2 
 on tabla2.customernumber = tabla1.customernumber;
+
+
+
+
+orders open
+
+SELECT o.ordernumber
+from orders o 
+where o.shippeddate is NULL;
+
+
+orders range
+
+SELECT o.ordernumber, o.orderdate, o.shippeddate
+FROM orders o 
+WHERE o.orderdate >= '2003-01-10' AND o.orderdate <= '2003-04-21'
+ORDER BY o.ordernumber;
+

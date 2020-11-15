@@ -35,15 +35,7 @@ void PrintRange() {
 void PrintDetail() {
     printf("SE SOLICITA UN ID DE PEDIDO Y SE DEVUELVE UN LISTADO CONTENIENDO LOS DETALLES DEL PEDIDO\n\n\n");
 }
-void PrintCFind() {
-    printf("SE SOLICITA UN NOMBRE DE CONTACTO...\n\n\n");
-}
-void PrintListProducts() {
-    printf("SE SOLICITA EL ID DE UN CLIENTE Y DEVUELVE LISTADO CON LOS PRODUCTOS SOLICITADOS POR EL CLIENTE...\n\n\n");
-}
-void PrintBalance() {
-    printf("SE SOLICITA EL ID DE UN CLIENTE Y SE DEVUELVE EL SALDO DEL MISMO...\n\n\n");
-}
+
 
 
 /**
@@ -290,23 +282,21 @@ void ShowCustomersMenu() {
         nChoice = ShowCustomersSubMenu();
         switch (nChoice) {
             case 1: {
-                PrintCFind();
+                customers_find();
             }
                 break;
 
             case 2: {
-                PrintListProducts();
+                customers_list_products();
             }
                 break;
 
             case 3: {
-                PrintBalance();
+                customers_balance();
             }
                 break;
 
-            case 4: {
-                printf("Bye Bye\n\n");
-            }
+            case 4:
                 break;
         }
     } while (nChoice != 4);

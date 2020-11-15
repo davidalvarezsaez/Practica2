@@ -10,12 +10,14 @@
 
 
 int products_stock(){
-    SQLHENV env;
-    SQLHDBC dbc;
-    SQLHSTMT stmt;
-    SQLRETURN ret; /* ODBC API return status */
-    SQLCHAR productcode[512];
-    SQLCHAR y[512];
+    SQLHENV env = NULL;
+    SQLHDBC dbc = NULL;
+    SQLHSTMT stmt = NULL;
+    int ret;
+    SQLRETURN ret2; /* ODBC API return status */
+    #define BufferLength 512
+    char productcode[BufferLength] = "\0";
+    int y = 0;
 
     /* CONNECT */
     ret = odbc_connect(&env, &dbc);
@@ -24,34 +26,43 @@ int products_stock(){
     }
 
     /* Allocate a statement handle */
-    SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT p.quantityinstock FROM products p WHERE p.productcode = ?;", SQL_NTS);
+    if (!SQL_SUCCEEDED(ret)) {
+        odbc_extract_error("", stmt, SQL_HANDLE_ENV);
+        return ret;
+    }
 
     SQLPrepare(stmt, (SQLCHAR*) "SELECT p.quantityinstock FROM products p WHERE p.productcode = ?", SQL_NTS);
 
     printf("Insert productcode to show stock > ");
-    fflush(stdout);
+    (void) fflush(stdout);
     while (scanf("%s", productcode) != EOF) {
-        SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 0, 0, productcode, 0, NULL);
+        (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 0, 0, productcode, 0, NULL);
 
-        SQLExecute(stmt);
+        (void) SQLExecute(stmt);
 
-        SQLBindCol(stmt, 1, SQL_C_CHAR, y, sizeof(y), NULL);
+        (void) SQLBindCol(stmt, 1, SQL_C_SLONG, (SQLINTEGER *) &y, sizeof(y), NULL);
 
         /* Loop through the rows in the result-set */
         while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
-            printf("Quantity in stock = %s\n", y);
+            printf("Quantity in stock = %d\n", y);
 }
 
-        SQLCloseCursor(stmt);
+        (void) SQLCloseCursor(stmt);
 
         printf("Insert productcode to show stock > ");
-        fflush(stdout);
+        (void) fflush(stdout);
     }
 
     printf("\n");
     
     /* free up statement handle */
-    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    ret2 = SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    if (!SQL_SUCCEEDED(ret2)) {
+        odbc_extract_error("", stmt, SQL_HANDLE_STMT);
+        return ret;
+    }
 
     /* DISCONNECT */
     ret = odbc_disconnect(env, dbc);
@@ -64,12 +75,14 @@ int products_stock(){
 
 
 int products_find(){
-SQLHENV env;
-    SQLHDBC dbc;
-    SQLHSTMT stmt;
-    SQLRETURN ret; /* ODBC API return status */
-    char productname[512]; /*lo que escribe el ususario*/
-    SQLCHAR name[512];
+    SQLHENV env = NULL;
+    SQLHDBC dbc = NULL;
+    SQLHSTMT stmt = NULL;
+    int ret;
+    SQLRETURN ret2; /* ODBC API return status */
+    #define BufferLength 512
+    char productname[BufferLength] = "\0"; /*lo que escribe el ususario*/
+    char name[BufferLength] = "\0";
 
     /* CONNECT */
     ret = odbc_connect(&env, &dbc);
@@ -78,41 +91,46 @@ SQLHENV env;
     }
 
     /* Allocate a statement handle */
-    SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+    ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT p.productcode, p.productname FROM products p WHERE p.productname LIKE '%?%%' order by p.productcode;", SQL_NTS);
+    if (!SQL_SUCCEEDED(ret)) {
+        odbc_extract_error("", stmt, SQL_HANDLE_ENV);
+        return ret;
+    }
+
 
     printf("Insert productname to show products > ");
-    fflush(stdout);
-    while (fgets(productname, sizeof(productname), stdin) != NULL) {
-        char query[512];
-        productname[strlen(productname)-1] = '\0';
-        sprintf(query, "SELECT p.productcode, p.productname FROM products p WHERE p.productname = '%s' order by p.productcode;", productname);
-		printf("%s \n", query); /*comprueba el funcionamiento de la consulta*/
+    (void) fflush(stdout);
+    while (scanf("%s", productname) != EOF) {
+        (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 0, 0, productname, 0, NULL); 
+        (void) SQLExecute(stmt);
 
-        SQLExecDirect(stmt, (SQLCHAR*) query, SQL_NTS);
-
-        SQLBindCol(stmt, 2, SQL_C_CHAR, name, sizeof(name), NULL);
+        (void) SQLBindCol(stmt, 1, SQL_C_CHAR,(SQLCHAR *) name, BufferLength, NULL);
 
         /* Loop through the rows in the result-set */
         while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
             printf("Name = %s\n", name);
         }
 
-        SQLCloseCursor(stmt); /*Limpia el contenido del contenedor*/
+        (void) SQLCloseCursor(stmt);
 
         printf("Insert productname to show products > ");
-        fflush(stdout);
+        (void) fflush(stdout);
     }
     printf("\n");
     
     /* free up statement handle */
-    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    ret2 = SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    if (!SQL_SUCCEEDED(ret2)) {
+        odbc_extract_error("", stmt, SQL_HANDLE_STMT);
+        return ret;
+    }
 
     /* DISCONNECT */
     ret = odbc_disconnect(env, dbc);
     if (!SQL_SUCCEEDED(ret)) {
         return EXIT_FAILURE;
     }
-
 
     return EXIT_SUCCESS;
 }
