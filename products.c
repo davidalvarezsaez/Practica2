@@ -14,8 +14,8 @@ int products_stock(){
     SQLHDBC dbc;
     SQLHSTMT stmt;
     SQLRETURN ret; /* ODBC API return status */
-    char productcode[512];
-    SQLCHAR quantityinstock[512];
+    SQLCHAR productcode[512];
+    SQLCHAR y[512];
 
     /* CONNECT */
     ret = odbc_connect(&env, &dbc);
@@ -26,27 +26,28 @@ int products_stock(){
     /* Allocate a statement handle */
     SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
 
+    SQLPrepare(stmt, (SQLCHAR*) "SELECT p.quantityinstock FROM products p WHERE p.productcode = ?", SQL_NTS);
+
     printf("Insert productcode to show stock > ");
     fflush(stdout);
-    while (fgets(productcode, sizeof(productcode), stdin) != NULL) {
-        char query[512];
-        sprintf(query, "SELECT p.quantityinstock FROM products p WHERE p.productcode = '%s';", productcode);
-	printf("%s \n", query); /*comprueba el funcionamiento de la consulta*/
+    while (scanf("%s", productcode) != EOF) {
+        SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 0, 0, productcode, 0, NULL);
 
-        SQLExecDirect(stmt, (SQLCHAR*) query, SQL_NTS);
+        SQLExecute(stmt);
 
-        SQLBindCol(stmt, 1, SQL_C_CHAR, &quantityinstock, sizeof(quantityinstock), NULL);
+        SQLBindCol(stmt, 1, SQL_C_CHAR, y, sizeof(y), NULL);
 
         /* Loop through the rows in the result-set */
         while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
-            printf("Quantity in stock = %s\n", quantityinstock);
-        }
+            printf("Quantity in stock = %s\n", y);
+}
 
-        SQLCloseCursor(stmt); /*Limpia el contenido del contenedor*/
+        SQLCloseCursor(stmt);
 
         printf("Insert productcode to show stock > ");
         fflush(stdout);
     }
+
     printf("\n");
     
     /* free up statement handle */
@@ -83,6 +84,7 @@ SQLHENV env;
     fflush(stdout);
     while (fgets(productname, sizeof(productname), stdin) != NULL) {
         char query[512];
+        productname[strlen(productname)-1] = '\0';
         sprintf(query, "SELECT p.productcode, p.productname FROM products p WHERE p.productname = '%s' order by p.productcode;", productname);
 		printf("%s \n", query); /*comprueba el funcionamiento de la consulta*/
 

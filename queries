@@ -1,0 +1,32 @@
+customers find
+
+select c.customername, c.contactfirstname, c.contactlastname, c.customernumber
+from customers c
+where (c.contactfirstname LIKE 'Mary%') or (c.contactlastname LIKE 'Mary%')
+order by c.customernumber;
+
+customer list products
+
+select p.productcode, p.productname, sum(o2.quantityordered)
+from customers c, orders o1, orderdetails o2, products p
+where c.customernumber = o1.customernumber AND o1.ordernumber = o2.ordernumber AND o2.productcode = p.productcode and c.customernumber = '141'
+group by p.productname, p.productcode
+order by p.productcode;
+
+customer balance
+
+
+SELECT tabla1.customernumber, (alreadypaid-yettopay) as balance
+
+FROM (
+	 SELECT c.customernumber, sum(p.amount) as alreadypaid 
+	 FROM customers c, payments p 
+	 WHERE c.customernumber = p.customernumber
+	 GROUP BY c.customernumber
+)AS tabla1 join (
+	SELECT c1.customernumber, sum(o2.quantityordered * o2.priceeach) as yettopay
+	FROM  customers c1, orders o1, orderdetails o2
+	WHERE c1.customernumber = o1.customernumber AND o1.ordernumber = o2.ordernumber AND c1.customernumber = '141'
+	GROUP BY c1.customernumber
+	) AS tabla2 
+on tabla2.customernumber = tabla1.customernumber;
