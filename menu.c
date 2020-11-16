@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "products.h"
+#include "orders.h"
 #include "customers.h"
 
 
@@ -26,16 +27,6 @@ void ShowOrdersMenu();
 int ShowOrdersSubMenu();
 void ShowCustomersMenu();
 int ShowCustomersSubMenu();
-void PrintOpen() {
-    printf("DEVUELVE UN LISTADO CON TODOS LOS PEDIDOS QUE TODAVÍA NO SE HAYAN ENVIADO\n\n\n");
-}
-void PrintRange() {
-    printf("SE SOLICITAN AL USUARIO DOS FECHAS Y SE DEVUELVE UN LISTADO CON LOS PEDIDOS\n\n\n");
-}
-void PrintDetail() {
-    printf("SE SOLICITA UN ID DE PEDIDO Y SE DEVUELVE UN LISTADO CONTENIENDO LOS DETALLES DEL PEDIDO\n\n\n");
-}
-
 
 
 /**
@@ -145,9 +136,7 @@ void ShowProductsMenu() {
             }
                 break;
 
-            case 3: {
-                printf("Bye Bye\n\n");
-            }
+            case 3:
                 break;
         }
     } while (nChoice != 3);
@@ -207,23 +196,21 @@ void ShowOrdersMenu() {
         nChoice = ShowOrdersSubMenu();
         switch (nChoice) {
             case 1: {
-                PrintOpen();
+                orders_open();
             }
                 break;
 
             case 2: {
-                PrintRange();
+                orders_range();
             }
                 break;
 
             case 3: {
-                PrintDetail();
+                orders_detail();
             }
                 break;
 
-            case 4: {
-                printf("Bye Bye\n\n");
-            }
+            case 4:
                 break;
         }
     } while (nChoice != 4);

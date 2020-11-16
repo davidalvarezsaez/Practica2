@@ -3,8 +3,8 @@ CFLAGS = -Wall -Wextra -pedantic -ansi
 LDLIBS = -lodbc
 
 # recompile if this heder changes
-HEADERS = odbc.h products.h customers.h
-DEPS = odbc.o products.o customers.o
+HEADERS = odbc.h products.h orders.h customers.h 
+DEPS = odbc.o products.o  orders.o customers.o
 
 EXE = menu
 OBJ = $(EXE).o

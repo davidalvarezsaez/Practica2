@@ -18,6 +18,7 @@ int customers_list_products(){
     SQLRETURN ret2; /* ODBC API return status */
     #define BufferLength 512
     int customernumber = 0;
+    int num = 0;
     char result[BufferLength] = "\0";
 
     /* CONNECT */
@@ -46,9 +47,13 @@ int customers_list_products(){
         
         (void) SQLBindCol(stmt, 1, SQL_C_CHAR, (SQLCHAR *) result, sizeof(result), NULL);
 
+        (void) SQLBindCol(stmt, 2, SQL_C_SLONG, (SQLINTEGER *) &num, sizeof(num), NULL);
+
+        printf("\nProduct's name and the quantity ordered:\n");
+
         /* Loop through the rows in the result-set */       
 	while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
-            printf("Products = %s\n", result);
+            printf("  %s %d\n", result, num);
         }  
 
         (void) SQLCloseCursor(stmt); /*Limpia el contenido del contenedor*/
