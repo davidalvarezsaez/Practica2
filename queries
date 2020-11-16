@@ -40,6 +40,20 @@ SELECT o.ordernumber
 from orders o 
 where o.shippeddate is NULL;
 
+ORDERDETAILS
+
+tablatonta
+SELECT o.orderdate, o.status, sum(o1.quantityordered * o1.priceeach) 
+FROM orders o join orderdetails o1 on o.ordernumber = o1.ordernumber
+WHERE o.ordernumber = '10100'
+GROUP BY o.orderdate, o.status;
+
+tabla normal
+SELECT o1.productcode, o1.quantityordered, o1.priceeach 
+FROM orders o join orderdetails o1 on o.ordernumber = o1.ordernumber
+WHERE o.ordernumber = '10100'
+ORDER BY o1.orderlinenumber;
+
 
 orders range
 

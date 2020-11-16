@@ -8,7 +8,6 @@
 #include "products.h"
 
 
-
 int products_stock(){
     SQLHENV env = NULL;
     SQLHDBC dbc = NULL;
@@ -35,9 +34,9 @@ int products_stock(){
 
     SQLPrepare(stmt, (SQLCHAR*) "SELECT p.quantityinstock FROM products p WHERE p.productcode = ?", SQL_NTS);
 
-    printf("Insert productcode to show stock > ");
+    printf("Enter productcode > ");
     (void) fflush(stdout);
-    while (scanf("%s", productcode) != EOF) {
+    while (scanf("%s", productcode) != EOF){
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 0, 0, productcode, 0, NULL);
 
         (void) SQLExecute(stmt);
@@ -46,12 +45,12 @@ int products_stock(){
 
         /* Loop through the rows in the result-set */
         while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
-            printf("Quantity in stock = %d\n", y);
+            printf(" %d\n", y);
 }
 
         (void) SQLCloseCursor(stmt);
 
-        printf("Insert productcode to show stock > ");
+        printf("Enter productcode > ");
         (void) fflush(stdout);
     }
 
@@ -70,6 +69,7 @@ int products_stock(){
         return EXIT_FAILURE;
     }
 
+
     return EXIT_SUCCESS;
 }
 
@@ -82,7 +82,7 @@ int products_find(){
     SQLRETURN ret2; /* ODBC API return status */
     #define BufferLength 512
     char productname[BufferLength] = "\0"; /*lo que escribe el ususario*/
-    char name[BufferLength] = "\0";
+    char name[BufferLength] = "\0", query[BufferLength] = "\0";
 
     /* CONNECT */
     ret = odbc_connect(&env, &dbc);
@@ -90,31 +90,34 @@ int products_find(){
         return EXIT_FAILURE;
     }
 
-    /* Allocate a statement handle */
+    /* Allocate a statement handle*/
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-    ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT p.productcode, p.productname FROM products p WHERE p.productname LIKE ? order by p.productcode;", SQL_NTS);
-    if (!SQL_SUCCEEDED(ret)) {
-        odbc_extract_error("", stmt, SQL_HANDLE_ENV);
-        return ret;
-    }
 
 
-    printf("Insert productname to show products > ");
+    printf("Enter productname > ");
     (void) fflush(stdout);
     while (scanf("%s", productname) != EOF) {
-        (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 0, 0, productname, 0, NULL); 
+        sprintf(query, "SELECT p.productcode, p.productname FROM products p WHERE p.productname LIKE '%%%s%%' order by p.productcode;", productname);
+
+
+        ret = SQLPrepare(stmt, (SQLCHAR*) query, SQL_NTS);
+        if (!SQL_SUCCEEDED(ret)) {
+            odbc_extract_error("", stmt, SQL_HANDLE_ENV);
+            return ret;
+        }
+
         (void) SQLExecute(stmt);
 
         (void) SQLBindCol(stmt, 1, SQL_C_CHAR,(SQLCHAR *) name, BufferLength, NULL);
 
         /* Loop through the rows in the result-set */
         while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
-            printf("Name = %s\n", name);
+            printf(" %s\n", name);
         }
 
         (void) SQLCloseCursor(stmt);
 
-        printf("Insert productname to show products > ");
+        printf("Enter productname > ");
         (void) fflush(stdout);
     }
     printf("\n");

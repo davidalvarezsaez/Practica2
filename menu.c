@@ -60,9 +60,7 @@ int main(void) {
             }
                 break;
 
-            case 4: {
-                printf("Bye Bye\n\n");
-            }
+            case 4:
                 break;
         }
     } while (nChoice != 4);
@@ -171,7 +169,7 @@ void ShowProductsMenu() {
 
 
         if ((nSelected < 1) || (nSelected > 3)) {
-            printf("You have entered an invalid choice. Please try again\n\n\n");
+            printf("***%d***You have entered an invalid choice. Please try again\n\n\n", nSelected);
         }
     } while ((nSelected < 1) || (nSelected > 3));
 
