@@ -5,7 +5,7 @@
 #include <sqlext.h>
 #include "odbc.h"
 
-#include "products.h"
+#include "orders.h"
 
 int orders_open(){
     SQLHENV env = NULL;
@@ -34,7 +34,7 @@ int orders_open(){
      
     (void) SQLExecute(stmt);
         
-    (void) SQLBindCol(stmt, 1, SQL_C_SLONG,(SQLINTEGER *) &ordernumber, sizeof (ordernumber), NULL);
+    (void) SQLBindCol(stmt, 1, SQL_C_SLONG,(SQLINTEGER *) &ordernumber, 0, NULL);
 
 
     /* Loop through the rows in the result-set */
@@ -100,7 +100,7 @@ int orders_range(){
         
         (void) SQLExecute(stmt);
         
-        (void) SQLBindCol(stmt, 1, SQL_C_SLONG, (SQLINTEGER *) &ordernumber, sizeof(ordernumber), NULL);
+        (void) SQLBindCol(stmt, 1, SQL_C_SLONG, (SQLINTEGER *) &ordernumber, 0, NULL);
         (void) SQLBindCol(stmt, 2, SQL_C_CHAR, (SQLCHAR *) resultorderdate, BufferLength, NULL);
         (void) SQLBindCol(stmt, 3, SQL_C_CHAR, (SQLCHAR *) resultshippeddate, BufferLength, NULL);
 
@@ -137,11 +137,11 @@ int orders_range(){
 int orders_detail(){
     SQLHENV env = NULL;
     SQLHDBC dbc = NULL;
-    SQLHSTMT stmt = NULL;
+    SQLHSTMT stmt = NULL, stmt2 = NULL;
     int ret; /* odbc.c */
     SQLRETURN ret2; /* ODBC API return status */
     #define BufferLength 512
-    int ordernumber = 0, quantityordered = 0, i = 0;
+    int ordernumber = 0, quantityordered = 0;
     double priceeach = 0, total = 0;
     char orderdate[BufferLength] = "\0", status[BufferLength] = "\0", productcode[BufferLength] = "\0";
 
@@ -153,9 +153,16 @@ int orders_detail(){
 
     /* Allocate a statement handle */
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-    ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT o.orderdate, o.status, sum(o1.quantityordered * o1.priceeach), o1.productcode, o1.quantityordered, o1.priceeach FROM orders o join orderdetails o1 on o.ordernumber = o1.ordernumber WHERE o.ordernumber = ? GROUP BY o.orderdate, o.status, o1.productcode, o1.quantityordered, o1.priceeach, o1.orderlinenumber ORDER BY o1.orderlinenumber;", SQL_NTS);
+    ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT o.orderdate, o.status, sum(o1.quantityordered*o1.priceeach) FROM orders o join orderdetails o1 on o.ordernumber = o1.ordernumber WHERE o.ordernumber = ? GROUP BY o.orderdate, o.status;", SQL_NTS);
     if (!SQL_SUCCEEDED(ret)) {
         odbc_extract_error("", stmt, SQL_HANDLE_ENV);
+        return ret;
+    }
+
+    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt2);
+    ret = SQLPrepare(stmt2, (SQLCHAR*) "SELECT o1.productcode, o1.quantityordered, o1.priceeach FROM orders o join orderdetails o1 on o.ordernumber = o1.ordernumber WHERE o.ordernumber = ? ORDER BY o1.orderlinenumber;", SQL_NTS);
+    if (!SQL_SUCCEEDED(ret)) {
+        odbc_extract_error("", stmt2, SQL_HANDLE_ENV);
         return ret;
     }
 
@@ -163,28 +170,31 @@ int orders_detail(){
     printf("Enter ordernumber > ");
     (void) fflush(stdout);
     while (scanf("%d", &ordernumber) != EOF) {
+
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &ordernumber, 0, NULL);
-        
+        (void) SQLBindParameter(stmt2, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &ordernumber, 0, NULL);
+
         (void) SQLExecute(stmt);
+        (void) SQLExecute(stmt2);
         
         (void) SQLBindCol(stmt, 1, SQL_C_CHAR, (SQLCHAR *) orderdate, BufferLength, NULL);
         (void) SQLBindCol(stmt, 2, SQL_C_CHAR, (SQLCHAR *) status, BufferLength, NULL);
-        (void) SQLBindCol(stmt, 3, SQL_C_DOUBLE, (SQLDOUBLE *) &total, sizeof(total), NULL);
-        (void) SQLBindCol(stmt, 4, SQL_C_CHAR, (SQLCHAR *) productcode, BufferLength, NULL);
-        (void) SQLBindCol(stmt, 5, SQL_C_SLONG, (SQLINTEGER *) &quantityordered, sizeof(quantityordered), NULL);
-        (void) SQLBindCol(stmt, 6, SQL_C_DOUBLE, (SQLDOUBLE *) &priceeach, sizeof(priceeach), NULL);
+        (void) SQLBindCol(stmt, 3, SQL_C_DOUBLE, (SQLDOUBLE *) &total, 0, NULL);
 
+        (void) SQLBindCol(stmt2, 1, SQL_C_CHAR, (SQLCHAR *) productcode, BufferLength, NULL);
+        (void) SQLBindCol(stmt2, 2, SQL_C_SLONG, (SQLINTEGER *) &quantityordered, 0, NULL);
+        (void) SQLBindCol(stmt2, 3, SQL_C_DOUBLE, (SQLDOUBLE *) &priceeach, 0, NULL);
 
+        while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) 
+            printf("Order Date=%s - status=%s\nTotal sum = %f\n", orderdate, status, total);
 
         /* Loop through the rows in the result-set */
-        while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
-            if(i==0) printf("Order Date=%s - status=%s\nTotal sum = %.6f\n", orderdate, status, total);
-
+        while (SQL_SUCCEEDED(ret = SQLFetch(stmt2)))
             printf(" %s %d %.2f\n", productcode, quantityordered, priceeach);
-            i++;
-        }
+
 
         (void) SQLCloseCursor(stmt);
+        (void) SQLCloseCursor(stmt2);
 
         printf("Enter ordernumber >");
         (void) fflush(stdout);
@@ -197,6 +207,13 @@ int orders_detail(){
         odbc_extract_error("", stmt, SQL_HANDLE_STMT);
         return ret;
     }
+
+    ret2 = SQLFreeHandle(SQL_HANDLE_STMT, stmt2);
+    if (!SQL_SUCCEEDED(ret2)) {
+        odbc_extract_error("", stmt2, SQL_HANDLE_STMT);
+        return ret;
+    }
+
 
     /* DISCONNECT */
     ret = odbc_disconnect(env, dbc);

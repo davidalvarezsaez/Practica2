@@ -7,14 +7,13 @@
 
 #include "products.h"
 
-
 int products_stock(){
     SQLHENV env = NULL;
     SQLHDBC dbc = NULL;
     SQLHSTMT stmt = NULL;
     int ret;
     SQLRETURN ret2; /* ODBC API return status */
-    #define BufferLength 512
+    #define BufferLength 254
     char productcode[BufferLength] = "\0";
     int y = 0;
 
@@ -32,7 +31,11 @@ int products_stock(){
         return ret;
     }
 
-    SQLPrepare(stmt, (SQLCHAR*) "SELECT p.quantityinstock FROM products p WHERE p.productcode = ?", SQL_NTS);
+    ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT p.quantityinstock FROM products p WHERE p.productcode = ?", SQL_NTS);
+    if (!SQL_SUCCEEDED(ret)) {
+        odbc_extract_error("", stmt, SQL_HANDLE_ENV);
+        return ret;
+    }
 
     printf("Enter productcode > ");
     (void) fflush(stdout);
@@ -41,7 +44,7 @@ int products_stock(){
 
         (void) SQLExecute(stmt);
 
-        (void) SQLBindCol(stmt, 1, SQL_C_SLONG, (SQLINTEGER *) &y, sizeof(y), NULL);
+        (void) SQLBindCol(stmt, 1, SQL_C_SLONG, (SQLINTEGER *) &y, 0, NULL);
 
         /* Loop through the rows in the result-set */
         while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
@@ -80,7 +83,7 @@ int products_find(){
     SQLHSTMT stmt = NULL;
     int ret;
     SQLRETURN ret2; /* ODBC API return status */
-    #define BufferLength 512
+    #define BufferLength 254
     char productname[BufferLength] = "\0"; /*lo que escribe el ususario*/
     char name[BufferLength] = "\0", query[BufferLength] = "\0";
 
@@ -97,16 +100,9 @@ int products_find(){
     printf("Enter productname > ");
     (void) fflush(stdout);
     while (scanf("%s", productname) != EOF) {
-        sprintf(query, "SELECT p.productcode, p.productname FROM products p WHERE p.productname LIKE '%%%s%%' order by p.productcode;", productname);
+        (void) sprintf(query, "SELECT p.productcode, p.productname FROM products p WHERE p.productname LIKE '%%%s%%' order by p.productcode;", productname);
 
-
-        ret = SQLPrepare(stmt, (SQLCHAR*) query, SQL_NTS);
-        if (!SQL_SUCCEEDED(ret)) {
-            odbc_extract_error("", stmt, SQL_HANDLE_ENV);
-            return ret;
-        }
-
-        (void) SQLExecute(stmt);
+        (void) SQLExecDirect(stmt, (SQLCHAR*) query, SQL_NTS);
 
         (void) SQLBindCol(stmt, 1, SQL_C_CHAR,(SQLCHAR *) name, BufferLength, NULL);
 

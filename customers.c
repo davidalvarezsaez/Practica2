@@ -39,15 +39,10 @@ int customers_find(){
     while (scanf("%s", input) != EOF) {
 
         sprintf(query, "select c.customernumber, c.customername, c.contactfirstname, c.contactlastname from customers c where (c.contactfirstname LIKE '%s%%' ) or (c.contactlastname LIKE '%s%%' ) order by c.customernumber;", input, input);
-        ret = SQLPrepare(stmt, (SQLCHAR*) query, SQL_NTS);
-        if (!SQL_SUCCEEDED(ret)) {
-            odbc_extract_error("", stmt, SQL_HANDLE_ENV);
-            return ret;
-        }
 
-        (void) SQLExecute(stmt);
+        (void) SQLExecDirect(stmt, (SQLCHAR*) query, SQL_NTS);
 
-        (void) SQLBindCol(stmt, 1, SQL_C_SLONG, (SQLINTEGER *) &result, sizeof(result), NULL);
+        (void) SQLBindCol(stmt, 1, SQL_C_SLONG, (SQLINTEGER *) &result, 0, NULL);
         (void) SQLBindCol(stmt, 2, SQL_C_CHAR, (SQLCHAR *) name, BufferLength, NULL);
         (void) SQLBindCol(stmt, 3, SQL_C_CHAR, (SQLCHAR *) firstname, BufferLength, NULL);
         (void) SQLBindCol(stmt, 4, SQL_C_CHAR, (SQLCHAR *) lastname, BufferLength, NULL);
@@ -117,9 +112,9 @@ int customers_list_products(){
         
         (void) SQLExecute(stmt);
         
-        (void) SQLBindCol(stmt, 1, SQL_C_CHAR, (SQLCHAR *) result, sizeof(result), NULL);
+        (void) SQLBindCol(stmt, 1, SQL_C_CHAR, (SQLCHAR *) result, BufferLength, NULL);
 
-        (void) SQLBindCol(stmt, 2, SQL_C_SLONG, (SQLINTEGER *) &num, sizeof(num), NULL);
+        (void) SQLBindCol(stmt, 2, SQL_C_SLONG, (SQLINTEGER *) &num, 0, NULL);
 
         /* Loop through the rows in the result-set */       
 	while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
@@ -180,7 +175,7 @@ int customers_balance(){
         
         (void) SQLExecute(stmt);
         
-        (void) SQLBindCol(stmt, 1, SQL_C_DOUBLE, (SQLDOUBLE *) &result, sizeof(result), NULL);
+        (void) SQLBindCol(stmt, 1, SQL_C_DOUBLE, (SQLDOUBLE *) &result, 0, NULL);
 
         /* Loop through the rows in the result-set */       
 	while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {

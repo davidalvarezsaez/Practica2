@@ -125,12 +125,12 @@ void ShowProductsMenu() {
         switch (nChoice) {
 
             case 1: {
-                products_stock();
+                (void) products_stock();
             }
                 break;
 
             case 2: {
-                products_find();
+                (void)products_find();
             }
                 break;
 
@@ -194,17 +194,17 @@ void ShowOrdersMenu() {
         nChoice = ShowOrdersSubMenu();
         switch (nChoice) {
             case 1: {
-                orders_open();
+                (void) orders_open();
             }
                 break;
 
             case 2: {
-                orders_range();
+                (void) orders_range();
             }
                 break;
 
             case 3: {
-                orders_detail();
+                (void) orders_detail();
             }
                 break;
 
@@ -262,22 +262,44 @@ void ShowOrdersMenu() {
 
 void ShowCustomersMenu() {
     int nChoice = 0;
+    char buf[16];
 
     do {
-        nChoice = ShowCustomersSubMenu();
+
+    do {
+
+        printf(" (1) Find\n"
+               " (2) List Products\n"
+               " (3) Balance\n"
+               " (4) Back\n\n");
+
+        printf("Enter a number that corresponds to your choice > ");
+        if (!fgets(buf, 16, stdin))
+            /* reading input failed, give up: */
+            nChoice =0;
+        else
+            /* have some input, convert it to integer: */
+            nChoice = atoi(buf);
+        printf("\n");
+
+        if ((nChoice < 1) || (nChoice > 4)) {
+            printf("You have entered an invalid choice. Please try again\n\n\n");
+        }
+    } while ((nChoice < 1) || (nChoice > 4));
+
         switch (nChoice) {
             case 1: {
-                customers_find();
+                (void) customers_find();
             }
                 break;
 
             case 2: {
-                customers_list_products();
+                (void) customers_list_products();
             }
                 break;
 
             case 3: {
-                customers_balance();
+                (void) customers_balance();
             }
                 break;
 
@@ -294,7 +316,7 @@ void ShowCustomersMenu() {
  * @return selected option
  * @author David Alvarez Saez
  */
- int ShowCustomersSubMenu() {
+int ShowCustomersSubMenu() {
     int nSelected = 0;
     char buf[16];
 
@@ -322,3 +344,25 @@ void ShowCustomersMenu() {
     return nSelected;
 }
 
+/*
+        do {
+
+            printf(" (1) Find\n"
+                   " (2) List Products\n"
+                   " (3) Balance\n"
+                   " (4) Back\n\n");
+
+            printf("Enter a number that corresponds to your choice > ");
+            if (!fgets(buf, 16, stdin))
+                /* reading input failed, give up: */
+/*                nChoice =0;
+            else
+                /* have some input, convert it to integer: */
+/*                nChoice = atoi(buf);
+            printf("\n");
+    
+            if ((nChoice < 1) || (nChoice > 4)) {
+                printf("You have entered an invalid choice. Please try again\n\n\n");
+            }
+        } while ((nChoice < 1) || (nChoice > 4));
+*/
