@@ -1,0 +1,25 @@
+customers.c: (in function customers_find)
+customers.c:36:9: Buffer overflow possible with sprintf.  Recommend using
+                     snprintf instead: sprintf
+  Use of function that may lead to buffer overflow. (Use -bufferoverflowhigh to
+  inhibit warning)
+products.c: (in function products_find)
+products.c:97:16: Buffer overflow possible with sprintf.  Recommend using
+                     snprintf instead: sprintf
+menu.c:23:5: Function exported but not used outside menu: ShowMainMenu
+  A declaration is exported, but not used outside this module. Declaration can
+  use static qualifier. (Use -exportlocal to inhibit warning)
+   menu.c:109:1: Definition of ShowMainMenu
+menu.c:24:6: Function exported but not used outside menu: ShowProductsMenu
+   menu.c:142:1: Definition of ShowProductsMenu
+menu.c:25:5: Function exported but not used outside menu: ShowProductsSubMenu
+   menu.c:177:1: Definition of ShowProductsSubMenu
+menu.c:26:6: Function exported but not used outside menu: ShowOrdersMenu
+   menu.c:216:1: Definition of ShowOrdersMenu
+menu.c:27:5: Function exported but not used outside menu: ShowOrdersSubMenu
+   menu.c:250:1: Definition of ShowOrdersSubMenu
+menu.c:28:6: Function exported but not used outside menu: ShowCustomersMenu
+   menu.c:290:1: Definition of ShowCustomersMenu
+menu.c:29:5: Function exported but not used outside menu: ShowCustomersSubMenu
+   menu.c:324:1: Definition of ShowCustomersSubMenu
+

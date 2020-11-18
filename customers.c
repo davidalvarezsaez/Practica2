@@ -27,11 +27,6 @@ int customers_find(){
 
     /* Allocate a statement handle */
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-    ret = SQLPrepare(stmt, (SQLCHAR*) "select c.customernumber, c.customername, c.contactfirstname, c.contactlastname from customers c where (c.contactfirstname LIKE ? ) or (c.contactlastname LIKE ? ) order by c.customernumber;", SQL_NTS);
-    if (!SQL_SUCCEEDED(ret)) {
-        odbc_extract_error("", stmt, SQL_HANDLE_ENV);
-        return ret;
-    }
 
 
     printf("Enter customer name > ");

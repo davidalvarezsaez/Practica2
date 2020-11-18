@@ -31,12 +31,6 @@ int products_stock(){
         return ret;
     }
 
-    ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT p.quantityinstock FROM products p WHERE p.productcode = ?", SQL_NTS);
-    if (!SQL_SUCCEEDED(ret)) {
-        odbc_extract_error("", stmt, SQL_HANDLE_ENV);
-        return ret;
-    }
-
     printf("Enter productcode > ");
     (void) fflush(stdout);
     while (scanf("%s", productcode) != EOF){
